@@ -19,8 +19,8 @@ echo -e "\033[36mDebian 10 DNS/NTP Configuration has begun.\n\n"
 
 # Declare the files and their purpose.
 # TODO: Replace with a JSON file or Map.
-declare -a typeName=("Basic" "IPTable" "BIND9")
-declare -a fileName=("basicConf" "iptable" "bind9")
+declare -a typeName=("Basic" "IPTable" "BIND9" "Chroot (Jail)")
+declare -a fileName=("basicConf" "iptableConf" "bind9Conf" "chrootConf")
 declare -i numOfScripts=${#fileName[@]}
 
 # Loop through the above lists
