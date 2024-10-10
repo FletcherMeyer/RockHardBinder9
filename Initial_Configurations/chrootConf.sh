@@ -1,115 +1,45 @@
 
-# create initial named user and group
-groupadd named
-useradd -g named -d /chroot/named -s /bin/true named
-passwd -l named     "lock" the account
+#!/bin/bash
+# Stopping BIND
+service bind9 stop
 
-# Remove all the login-related trash under the newly-created home directory
-rm -rf /chroot/named
+# Creation of the chroot jail under /var/lib/bind
+mkdir -p /var/lib/bind/{dev,etc,var,var/run/named,var/cache/bind}
+mknod /var/lib/bind/dev/null c 1 3
+mknod /var/lib/bind/dev/random c 1 8
+chmod 666 /var/lib/bind/dev/{null,random}
 
-# Re-create the top level jail directory
-mkdir -p /chroot/named
-cd /chroot/named
+# Backup of the BIND files (optional)
+[ -d /var/local/backups ] || mkdir /var/local/backups
+cp -a /etc/bind /var/local/backups/etc_bind.orig
 
-# create the hierarchy
-mkdir dev
-mkdir etc
-mkdir logs
-mkdir -p var/run
-mkdir -p conf/secondaries
+# Copy of the files to the chroot jail
+cp /etc/localtime /var/lib/bind/etc/
+cp -a /etc/bind /var/lib/bind/etc/
+cp -a /var/cache/bind/* /var/lib/bind/var/cache/bind/
 
-# create the devices, but confirm the major/minor device 
-# numbers with   "ls -lL /dev/zero /dev/null /dev/random"
-mknod dev/null c 1 3
-mknod dev/zero c 1 5
-mknod dev/random c 1 8
+# Modification of file permissions and owners
+chgrp bind /var/lib/bind/{var/cache/bind,var/run/named}
+chmod g+w /var/lib/bind/{var/cache/bind,var/run/named}
+chgrp bind /var/lib/bind
+chmod 750 /var/lib/bind
 
-# copy the timezone file
-cp /etc/localtime etc
+# Configuration of rsyslog
+cat <<'_EOD_' > /etc/rsyslog.d/bind-chroot.conf
+$AddUnixListenSocket /var/lib/bind/dev/log
+_EOD_
+service rsyslog restart
 
-# Make symbolic link and copy over our named.conf file.
-ln -s /chroot/named/etc/named.conf /etc/named.conf
-cp ./conf_Files/named.conf /etc/named.conf
+# Adding the option -t to named to specify the chroot
+sed -i \
+  -e 's|OPTIONS="-u bind"|OPTIONS="-u bind -t /var/lib/bind"|' \
+  /etc/default/bind9
+service bind9 restart
 
-# Get our information using dig and send to our db.rootcache
-dig +tcp @a.root-servers.net . ns > /chroot/named/conf/db.rootcache
-cp ./conf_Files/db.localhost chroot/named/conf/db.localhost
-cp ./conf_Files/db.127.0.0 chroot/named/conf/db.127.0.0
+# Before removing these files, make sure everything works fine
+# in the chroot and/or that you backed them up somewhere!
+rm -rf /etc/bind/* /var/cache/bind/*
 
-#   
-#   Set the ownership and permissions on the named directory
-#
-
-cd /chroot/named
-
-
-# By default, root owns everything and only root can write, but dirs
-# have to be executable too. Note that some platforms use a dot
-# instead of a colon between user/group in the chown parameters}
-
-chown -R root:named .
-
-find . -type f -print | xargs chmod u=rw,og=r     # regular files
-find . -type d -print | xargs chmod u=rwx,og=rx   # directories
-
-# the named.conf and rndc.conf must protect their keys
-chmod o= etc/*.conf
-
-# the "secondaries" directory is where we park files from
-# master nameservers, and named needs to be able to update
-# these files and create new ones.
-
-touch conf/secondaries/.empty  # placeholder
-find conf/secondaries/ -type f -print | xargs chown named:named
-find conf/secondaries/ -type f -print | xargs chmod ug=r,o=
-
-chown root:named conf/secondaries/
-chmod ug=rwx,o=  conf/secondaries/
-
-# the var/run business is for the PID file
-chown root:root  var/
-chmod u=rwx,og=x var/
-
-chown root:named  var/run/
-chmod ug=rwx,o=rx var/run/
-
-# named has to be able to create logfiles
-chown root:named  logs/
-chmod ug=rwx,o=rx logs/
-
-sh -x /chroot/named.perms
-# Something like this :
-# + cd /chroot/named
-# + chown -R root:named .
-# + find . -type f -print
-# + xargs chmod u=rw,og=r
-# + find . -type d -print
-# + xargs chmod u=rwx,og=rx
-# + chmod o= etc/named.conf etc/rndc.conf
-# + touch conf/secondaries/.empty
-# + find conf/secondaries/ -type f -print
-# + xargs chown named:named
-# + find conf/secondaries/ -type f -print
-# + xargs chmod ug=r,o=
-# + chown root:named conf/secondaries/
-# + chmod ug=rwx,o= conf/secondaries/
-# + chown root:root var/
-# + chmod u=rwx,og=x var/
-# + chown root:named var/run/
-# + chmod ug=rwx,o=rx var/run/
-
-#
-#   Start the name server up baby!
-#
-
-cd /chroot/named
-
-# make sure the debugging-output file is writable by named
-touch named.run
-chown named:named named.run
-chmod ug=rw,o=r   named.run
-
-PATH=/usr/local/sbin:$PATH named  \
-        -t /chroot/named \
-        -u named \
-        -c /etc/named.conf
+# Optional operation to ease the access to BIND files for admins
+rmdir /etc/bind
+ln -s /var/lib/bind/etc/bind /etc/bind
