@@ -1,13 +1,14 @@
 # Purpse
-RockHardBinder9 is meant to create a protectice BIND9 environment on a Debian 10 Buster. 
+RockHardBinder9 is meant to create a protected Master DNS Server on a Debian 10 Buster. 
 
 # What does it do?
-Provide basic security, allowing it to only run as a DNS server.
-The end goal of the binder is to create a rock hard system. 
-
-# Current
-Basic IP Tables, chroot environment for BIND9.
+- Basic security configurations for the operating system
+  - chroot jail system
+  - iptables
+  - auditd
+  - Minimal priveleges, services
+  - Root account migration
+The end goal of the binder is to create a rock hard system.
 
 # Future
-DNSSEC Support
-Redundancy provided through multiple service offerings. If BIND9 goes down, another system will go up in its place.
+Redundancy. Check if the service has failed in the chroot environment, before automatically restarting it and validating zone files.
