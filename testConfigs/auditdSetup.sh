@@ -144,7 +144,8 @@ cat > loc <<EOF
 ## -e 0 disables, -e 1 enables, -e 2 locks configuration until reboot
 -e 1
 
-EOF 
+EOF
 
-echo "Rules added to ${loc}"
-echo "Logs are in /var/log/audit.log"
+echo "Rules added to ${loc} \n"
+echo "Logs are in /var/log/audit/audit.log \n"
+echo "Use 'aureport' to view simple logs"
