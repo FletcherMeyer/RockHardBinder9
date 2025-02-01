@@ -1,7 +1,7 @@
 #!/bin/bash
 
 read -p "Enter the location of the auditd [/etc/audit/rules.d/audit.rules]:" loc
-loc=${loc:/etc/audit/rules.d/audit.rules}
+loc=${loc:-/etc/audit/rules.d/audit.rules}
 echo $loc
 
 cat > loc <<EOF
