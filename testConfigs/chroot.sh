@@ -34,7 +34,7 @@ ln -s ${CHROOT_DIR}/etc/bind /etc/bind
 cp /etc/localtime ${CHROOT_DIR}/etc/
 cp -a /usr/share/dns /var/bind9/chroot/usr/share/
 
-touch /var/log/bind9/query.log
+touch ${CHROOT_DIR}/var/log/bind9/query.log
 
 chown bind:bind ${CHROOT_DIR}/etc/bind/rndc.key
 chown bind:bind ${CHROOT_DIR}/run/named
