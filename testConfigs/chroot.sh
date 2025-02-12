@@ -1,7 +1,7 @@
 apt-get install dnsutils
 apt-get install bind9
 
-echo "Configuring Bind9...\n\n"
+printf "${GREEN}Configuring Bind9...\n\n${NC}"
 
 CHROOT_DIR=/var/bind9/chroot
 
@@ -36,8 +36,9 @@ cp -a /usr/share/dns /var/bind9/chroot/usr/share/
 
 chown bind:bind ${CHROOT_DIR}/etc/bind/rndc.key
 chown bind:bind ${CHROOT_DIR}/run/named
-chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named}
-chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named}
+chown bind:bind ${CHROOT_DIR}/etc/named
+chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/named}
+chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named,etc/named}
 
 # The AppArmor SHOULD look like this:
 cat <<-EOF > /etc/apparmor.d/usr.sbin.named
@@ -138,4 +139,4 @@ rndc querylog
 #
 # END OF BIND9
 #
-printf "Bind9 Configured!\n\n"
+printf "${GREEN}Bind9 Configured!\n\n${NC}"
