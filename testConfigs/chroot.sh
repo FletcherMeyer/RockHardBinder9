@@ -20,15 +20,15 @@ EOF
 systemctl reenable bind9
 systemctl daemon-reload
 
-mkdir -p ${CHROOT_DIR}/{etc,dev,run/named,var/cache/bind,usr/share}
-touch /var/lot/bind9/query.log
+mkdir -p ${CHROOT_DIR}/{etc,dev,run/named,var/cache/bind,usr/share,/var/log/bind9/}
+touch /var/log/bind9/query.log
 
 mknod ${CHROOT_DIR}/dev/null c 1 3
 mknod ${CHROOT_DIR}/dev/random c 1 8
 mknod ${CHROOT_DIR}/dev/urandom c 1 9
 chmod 666 ${CHROOT_DIR}/dev/{null,random,urandom}
 
-cp -r ${CHROOT_DIR}/etc/bind ${CHROOT_DIR}/etc
+cp -r /etc/bind ${CHROOT_DIR}/etc
 
 ln -s ${CHROOT_DIR}/etc/bind /etc/bind
 
