@@ -40,7 +40,7 @@ chown bind:bind ${CHROOT_DIR}/etc/bind/rndc.key
 chown bind:bind ${CHROOT_DIR}/run/named
 chown bind:bind ${CHROOT_DIR}/etc/bind
 chown bind:bind ${CHROOT_DIR}/var/log/bind9
-chmod 665 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/query.log}
+chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/query.log}
 chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/query.log}
 
 # The AppArmor SHOULD look like this:
