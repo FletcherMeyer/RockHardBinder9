@@ -21,7 +21,6 @@ systemctl reenable bind9
 systemctl daemon-reload
 
 mkdir -p ${CHROOT_DIR}/{etc,dev,run/named,var/cache/bind,usr/share,/var/log/bind9/}
-touch /var/log/bind9/query.log
 
 mknod ${CHROOT_DIR}/dev/null c 1 3
 mknod ${CHROOT_DIR}/dev/random c 1 8
@@ -35,12 +34,14 @@ ln -s ${CHROOT_DIR}/etc/bind /etc/bind
 cp /etc/localtime ${CHROOT_DIR}/etc/
 cp -a /usr/share/dns /var/bind9/chroot/usr/share/
 
+touch /var/log/bind9/query.log
+
 chown bind:bind ${CHROOT_DIR}/etc/bind/rndc.key
 chown bind:bind ${CHROOT_DIR}/run/named
 chown bind:bind ${CHROOT_DIR}/etc/bind
 chown bind:bind ${CHROOT_DIR}/var/log/bind9
-chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/named}
-chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named,etc/named}
+chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind}
+chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind}
 
 # The AppArmor SHOULD look like this:
 cat <<-EOF > /etc/apparmor.d/usr.sbin.named
