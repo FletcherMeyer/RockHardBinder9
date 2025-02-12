@@ -15,6 +15,14 @@ chown bind:bind ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_erro
 chmod 775 ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_errors.msgs,dns_critical.msgs}
 chgrp bind ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_errors.msgs,dns_critical.msgs}
 
+cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf
+include "/etc/bind/named.conf.options";
+include "/etc/bind/named.conf.local";
+include "/etc/bind/named.conf.default-zones";
+include "/etc/bind/named.conf.logging";
+
+EOF
+
 cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf.logging
 
 logging {
@@ -70,9 +78,10 @@ logging {
 };
 
 EOF
+cat ${CHROOT_DIR}/etc/bind/named.conf.logging
 
 
-cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf.options
+cat <<- EOF > ${CHROOT_DIR}/etc/bind/named.conf.options
 options {
     directory "/var/cache/bind";
 
@@ -130,11 +139,3 @@ options {
 };
 
 EOF 
-
-cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf
-include "/etc/bind/named.conf.options";
-include "/etc/bind/named.conf.local";
-include "/etc/bind/named.conf.default-zones";
-include "/etc/bind/named.conf.logging";
-
-EOF
