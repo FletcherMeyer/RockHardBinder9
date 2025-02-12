@@ -15,7 +15,8 @@ chown bind:bind ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_erro
 chmod 775 ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_errors.msgs,dns_critical.msgs}
 chgrp bind ${CHROOT_DIR}/tmp/logs/{dns_queries.msgs,dns_debug.msgs,dns_errors.msgs,dns_critical.msgs}
 
-cat <<-EOF > $CHROOT_DIR/etc/bind/named.conf.logging
+cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf.logging
+
 logging {
     // Syslog logging for general information.
     channel my_syslog {
@@ -26,28 +27,28 @@ logging {
 
     // All queries sent to our service.
     channel dns_queries {
-        file "/tmp/dns_queries.msgs";
+        file "/tmp/logs/dns_queries.msgs";
         severity info;
         print-time yes;
     };
 
     // Level 5 debug messages.
     channel dns_debug {
-        file "/tmp/dns_debug.msgs";
+        file "/tmp/logs/dns_debug.msgs";
         severity debug 5;
         print-time yes;
     };
 
     // Error messages.
     channel dns_errors {
-        file "/tmp/dns_errors.msgs";
+        file "/tmp/logs/dns_errors.msgs";
         severity error;
         print-time yes;
     };
 
     // Critical messages.
     channel dns_critical {
-        file "/tmp/dns_critical.msgs";
+        file "/tmp/logs/dns_critical.msgs";
         severity error;
         print-time yes;
     };
@@ -63,13 +64,15 @@ logging {
         dns_errors; 
     };
 
-    category queries { dns_queries; };
+    category queries { 
+        dns_queries;
+    };
 };
+
 EOF
 
 
-cat <<-EOF > $CHROOT_DIR/etc/bind/named.conf.options
-
+cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf.options
 options {
     directory "/var/cache/bind";
 
@@ -80,7 +83,6 @@ options {
     fetch-glue no;
 
     blackhole {
-        null;
     };
 
     forwarders {
@@ -118,11 +120,18 @@ options {
     version "9.3.6-P1+deb9u8-Debian";
 
     rrset-order {order cyclic;};
+
+    rate-limit {
+        responses-per-second 5;
+    };
+    max-cache-size 100M;
+    max-cache-ttl 3600;
+    max-ncache-ttl 3600;
 };
+
 EOF 
 
-cat <<-EOF > $CHROOT_DIR/etc/bind/named.conf
-
+cat <<-EOF > ${CHROOT_DIR}/etc/bind/named.conf
 include "/etc/bind/named.conf.options";
 include "/etc/bind/named.conf.local";
 include "/etc/bind/named.conf.default-zones";
