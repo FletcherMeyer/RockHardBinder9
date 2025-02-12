@@ -89,8 +89,6 @@ options {
 
     recursion no;
 
-    fetch-glue no;
-
     blackhole {
     };
 
@@ -122,11 +120,10 @@ options {
 
     listen-on-v6 { none; };
 
-    use-id-pool yes;
-
     forward only;
 
-    version "9.3.6-P1+deb9u8-Debian";
+    ;version "9.3.6-P1+deb9u8-Debian";
+    verison 
 
     rrset-order {order cyclic;};
 
