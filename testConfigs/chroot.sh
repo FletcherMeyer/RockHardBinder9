@@ -36,16 +36,11 @@ cp -a /usr/share/dns /var/bind9/chroot/usr/share/
 
 touch ${CHROOT_DIR}/var/log/bind9/query.log
 
-touch ${CHROOT_DIR}/tmp/dns_queries.msgs
-touch ${CHROOT_DIR}/tmp/dns_debug.msgs
-touch ${CHROOT_DIR}/tmp/dns_errors.msgs
-touch ${CHROOT_DIR}/tmp/dns_critical.msgs
-
 chown bind:bind ${CHROOT_DIR}/etc/bind/rndc.key
 chown bind:bind ${CHROOT_DIR}/run/named
 chown bind:bind ${CHROOT_DIR}/etc/bind
 chown bind:bind ${CHROOT_DIR}/var/log/bind9
-chmod 775 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/}
+chmod 665 ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/}
 chgrp bind ${CHROOT_DIR}/{var/cache/bind,run/named,etc/bind,var/log/bind9/}
 
 # The AppArmor SHOULD look like this:
