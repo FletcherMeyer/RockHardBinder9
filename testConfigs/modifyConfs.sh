@@ -63,8 +63,8 @@ logging {
         dns_errors; 
     };
 
-    category queries { dns_queries; }
-}
+    category queries { dns_queries; };
+};
 EOF
 
 
@@ -119,6 +119,7 @@ options {
 
     rrset-order {order cyclic;};
 };
+EOF 
 
 cat <<-EOF > $CHROOT_DIR/etc/bind/named.conf
 
