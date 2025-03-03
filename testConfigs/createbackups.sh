@@ -6,6 +6,7 @@ if [ "$backup_dir" == "q" ]; then
     exit 0
 fi
 if [ -d "$backup_dir" ]; then
+    echo "Backup found!"
 else
     echo "Backup not found..."
     exit 0
@@ -21,7 +22,7 @@ mkdir -p "$backup_dir"
 while IFS= read -r file; do
     # Check if the file exists before copying
     if [ -f "$file" ]; then
-        cp "$file" "$backup_dir"
+        cp "$file" "$backup_dir/$file"
         echo "Copied: $file"
     else
         echo "File not found: $file"
