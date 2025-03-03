@@ -1,0 +1,2 @@
+DOMAIN_ARR=("blog.ccdclab.net" "storage.ccdclab.net");
+RESOLVE_ARR=("172.21.34.236" "172.19.190.85");
