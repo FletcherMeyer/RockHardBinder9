@@ -34,7 +34,7 @@ if [ -f "$file_list" ]; then
     echo -e "[${GREEN}OKAY${RESET}] File list found..."
 else
     echo -e "[${RED}FAILURE${RESET}] File list not found. Exiting."
-    exit 0
+    exit 1
 fi
 
 # Create the backup directory if it does not exist
