@@ -1,26 +1,7 @@
 mkdir -p /tools/
 touch /tools/iptables.sh
 
-# if prompt <prompt> n; then; <cmds>; fi
-# Defaults to NO
-# if prompt <prompt> y; then; <cmds>; fi
-# Defaults to YES
-prompt() {
-  case "$2" in 
-    y) def="[Y/n]" ;;
-    n) def="[y/N]" ;;
-    *) echo "INVALID PARAMETER!!!!"; exit ;;
-  esac
-  read -p "$1 $def" ans
-  case $ans in
-    y|Y) true ;;
-    n|N) false ;;
-    *) [[ "$def" != "[y/N]" ]] ;;
-  esac
-}
-if prompt "Disable HTTP(S)?" y
-then
-  cat <<EOF > $/tools/iptables.sh
+cat <<EOF > /tools/iptables.sh
 if [[ \$EUID -ne 0 ]]
 then
   printf 'Must be run as root, exiting!\n'
@@ -147,4 +128,3 @@ $IPT -A INPUT -i $INT_INTER -p tcp -s $INT_NET --dport ssh -m state --state NEW,
 $IPT -A OUTPUT -o $INT_INTER -p tcp -d $INT_NET --sport ssh -m state --state ESTABLISHED -j ACCEPT
 
 EOF
-fi
