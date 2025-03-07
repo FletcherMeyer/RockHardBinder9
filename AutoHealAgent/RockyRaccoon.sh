@@ -172,30 +172,28 @@ function service(){
     touch "/tmp/rocky.log"
     curr=$(dirname "$0")
 
-    cat <<-EOF > /etc/systemd/system/RockyRaccoon.timer
-    [Unit]
-    Description=https://en.wikipedia.org/wiki/Rocky_Raccoon
+cat <<-EOF > /etc/systemd/system/RockyRaccoon.timer
+[Unit]
+Description=https://en.wikipedia.org/wiki/Rocky_Raccoon
 
-    [Timer]
-    OnBootSec=1sec
-    OnUnitActiveSec=5min
+[Timer]
+OnBootSec=1sec
+OnUnitActiveSec=5min
 
-    [Install]
-    WantedBy=timers.target
+[Install]
+WantedBy=timers.target
 EOF
 
-    cat <<-EOF > /etc/systemd/system/RockyRaccoon.service
-    [Unit]
-    Description=https://en.wikipedia.org/wiki/Rocky_Raccoon
-
-    [Service]
-    ExecStart=${"$curr/RockyRaccoon.sh"}
-    User=root  # Change if needed
-    StandardOutput=/tmp/rocky.log
-    StandardError=journal
-
-    [Install]
-    WantedBy=multi-user.target
+cat <<-EOF > /etc/systemd/system/RockyRaccoon.service
+[Unit]
+Description=https://en.wikipedia.org/wiki/Rocky_Raccoon
+[Service]
+ExecStart=${"$curr/RockyRaccoon.sh"}
+User=root  # Change if needed
+StandardOutput=/tmp/rocky.log
+StandardError=journal
+[Install]
+WantedBy=multi-user.target
 EOF
 
 
@@ -206,5 +204,5 @@ EOF
     systemctl enable RockyRaccoon.timer
 }
 
-service();
+#service();
 main();
