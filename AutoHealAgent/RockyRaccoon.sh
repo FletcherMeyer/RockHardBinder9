@@ -92,82 +92,6 @@ function backup(){
     echo -e "[${GREEN}OKAY${RESET}] Backup completed."
     exit 0
 }
-
-function main(){
-    if [ -z $1 ]; then
-        echo "Please enter the location of the backup directory [q to exit] : "
-        read backup_dir
-        if [ "$backup_dir" == "q" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] Exiting"
-            exit 1
-        fi
-        if [ -d "$backup_dir" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] Backup found..."
-        else
-            echo -e "[${YELLOW}WARNING${RESET}] Backup directory '$backup_dir' not in file system. Creating..."
-            mkdir -p "$backup_dir"
-        fi
-    else
-        backup_dir="$1"
-    fi
-
-    # Define the file that contains the list of files to back up
-    if [ -z $2 ]; then
-        echo "Please enter the location of the file list [q to exit] : "
-        read file_list
-        if [ "$file_list" == "q" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] Exiting"
-            exit 1
-        fi
-        if [ -f "$file_list" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] File list found..."
-        else
-            echo -e "[${RED}FAILURE${RESET}] File list not found. Exiting."
-            exit 1
-        fi
-    else
-        file_list="$2"
-    fi
-    # Create the backup directory if it does not exist
-    mkdir -p "$backup_dir"
-
-    if [ -z $3 ]; then
-        echo "Please enter the location of the domain records [q to exit] : "
-        read domain_records
-        if [ "$domain_records" == "q" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] Exiting"
-            exit 1
-        fi
-        if [ -f "$domain_records" ]; then
-            echo -e "[${GREEN}OKAY${RESET}] Domain records found..."
-        else
-            echo -e "[${RED}FAILURE${RESET}] Domain records not found. Exiting."
-            exit 1
-        fi
-    else
-        domain_records="$3"
-    fi
-
-    bash "$curr/RockyValidate.sh $domain_records"
-
-    if [ $? == '0' ]; then
-        echo "[${$GREEN}SUCCESS${$RESET}] $(date) Rocky Raccoon validated DNS."
-        exit 0
-    else
-        echo "[${$RED}FAILURE${$RESET}] $(date) Rocky Raccoon was unable to validate DNS." 
-        bash "$curr/RockyLoad.sh" $backup_dir $file_list
-        # Run it again or some shit
-        bash "$curr/RockyValidate.sh $domain_records"
-        if [ $? == '0' ]; then
-            echo "[${$GREEN}SUCCESS${$RESET}] $(date) Rocky Raccoon restored DNS."
-            exit 1
-        else
-        echo "[${$RED}FAILURE${$RESET}] $(date) Rocky Raccoon was unable to restore DNS." 
-        fi
-        exit 1
-    fi
-}
-
 function service(){
     touch "/tmp/rocky.log"
     curr=$(dirname "$0")
@@ -204,5 +128,71 @@ EOF
     systemctl enable RockyRaccoon.timer
 }
 
-#service();
-main();
+if [ -z $1 ]; then
+    echo "Please enter the location of the backup directory [q to exit] : "
+    read backup_dir
+    if [ "$backup_dir" == "q" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Exiting"
+        exit 1
+    fi
+    if [ -d "$backup_dir" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Backup found..."
+    else
+        echo -e "[${YELLOW}WARNING${RESET}] Backup directory '$backup_dir' not in file system. Creating..."
+        mkdir -p "$backup_dir"
+    fi
+else
+    backup_dir="$1"
+fi
+# Define the file that contains the list of files to back up
+if [ -z $2 ]; then
+    echo "Please enter the location of the file list [q to exit] : "
+    read file_list
+    if [ "$file_list" == "q" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Exiting"
+        exit 1
+    fi
+    if [ -f "$file_list" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] File list found..."
+    else
+        echo -e "[${RED}FAILURE${RESET}] File list not found. Exiting."
+        exit 1
+    fi
+else
+    file_list="$2"
+fi
+# Create the backup directory if it does not exist
+mkdir -p "$backup_dir"
+if [ -z $3 ]; then
+    echo "Please enter the location of the domain records [q to exit] : "
+    read domain_records
+    if [ "$domain_records" == "q" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Exiting"
+        exit 1
+    fi
+    if [ -f "$domain_records" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Domain records found..."
+    else
+        echo -e "[${RED}FAILURE${RESET}] Domain records not found. Exiting."
+        exit 1
+    fi
+else
+    domain_records="$3"
+fi
+bash "$curr/RockyValidate.sh $domain_records"
+if [ $? == '0' ]; then
+    echo "[${$GREEN}SUCCESS${$RESET}] $(date) Rocky Raccoon validated DNS."
+    exit 0
+else
+    echo "[${$RED}FAILURE${$RESET}] $(date) Rocky Raccoon was unable to validate DNS." 
+    bash "$curr/RockyLoad.sh" $backup_dir $file_list
+    # Run it again or some shit
+    bash "$curr/RockyValidate.sh $domain_records"
+    if [ $? == '0' ]; then
+        echo "[${$GREEN}SUCCESS${$RESET}] $(date) Rocky Raccoon restored DNS."
+        exit 1
+    else
+    echo "[${$RED}FAILURE${$RESET}] $(date) Rocky Raccoon was unable to restore DNS." 
+    fi
+    exit 1
+fi
