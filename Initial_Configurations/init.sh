@@ -1,4 +1,3 @@
-yes | sudo apt-get purge at*
 yes | sudo apt-get purge apache2*
 yes | sudo apt-get purge exim4*
 yes | sudo apt-get purge openssh*
@@ -27,7 +26,7 @@ yes | sudo apt-get purge snmtptrap*
 yes | sudo apt-get purge winbind*
 yes | sudo apt-get purge xfs*
 yes | sudo apt-get purge ypbind*
-yes | sudo apt-get autoremove*
+yes | sudo apt-get autoremove
 
 groupdel lp
 groupdel news
