@@ -221,9 +221,6 @@ RESOLVCONF=no
 OPTIONS="-u bind -t ${CHROOT_DIR}"
 EOF
 
-/etc/init.d/bind9 stop
-
-
 systemctl reenable bind9
 systemctl daemon-reload
 
@@ -745,7 +742,7 @@ options {
 
     forward only;
 
-    verison { none; };
+    version none;
 
     rrset-order {order cyclic;};
 
@@ -941,7 +938,7 @@ echo -e "[${GREEN}OKAY${RESET}] Backups loaded."
 exit 0
 EOF
 
-cat > /files.txt << 'EOF'
+cat > /.files.txt << 'EOF'
 /etc/bind/
 /etc/apparmor.d/usr.sbin.named
 /etc/bind/bind.keys
@@ -980,15 +977,13 @@ cat > /files.txt << 'EOF'
 /usr/sbin/nsec3hash
 /usr/sbin/tsig-keygen
 EOF
+cp /.files.txt /etc/rockyraccoon/files.txt
 
-backup /baks /files.txt
+backup /baks /.files.txt
 
-
-
-touch /usr/sbin/rockyraccoon
-chmod +x /usr/sbin/rockyraccoon
-
-cat > /usr/sbin/rockyraccoon << 'EOF'
+touch /usr/sbin/validate
+chmod +x /usr/sbin/validate
+cat > /usr/sbin/validate << 'EOF'
 #!/bin/bash
 if [[ "$EUID" -ne 0 ]]
 then
@@ -1046,16 +1041,18 @@ exit 0
 EOF
 
 
-touch /usr/sbin/rockyraccoon
-chmod +x /usr/sbin/rockyraccoon
-
+touch /usr/sbin/zones
+chmod +x /usr/sbin/zones
 cat > /usr/sbin/zones << 'EOF'
 #!/bin/bash
+if [ -z "$1" ]; then
+    echo "Please enter where all the zones at : "
+    read zone_dir
+else
+    zone_dir="$1"
+fi
 
-echo "Please enter where all the zones at : "
-read zone_dir
-
-if [ "$zone_dir" == "" ]; do
+if [ "$zone_dir" == "" ]; then
     zone_dir="/etc/bind/zones"
 fi
 
@@ -1071,9 +1068,65 @@ find "$zone_dir" -type f -name "db*" -o -name "*db" -o -name "*zone" | while rea
         ip=$(echo "$line" | awk '{print $NF}')
         echo "$domain resolves to $ip"
     done
-    grep -E '^\s*\S+\s+IN\s+NS\s+\S+' "$zone_file" | while read -r line; do
-        domain=$(echo "$line" | awk '{print $1}')
+    grep -E '^\s*\s+IN\s+NS\s+\S+' "$zone_file" | while read -r line; do
+        domain=$(echo "$line" | awk '{print $3}')
         echo "$domain is a name server"
     done
 done
+EOF
+
+mkdir -p /etc/rockyraccoon/
+touch /etc/rockyraccoon/records.txt
+cat > /etc/rockyraccoon/records.txt << 'EOF'
+DOMAIN_ARR=("blog.ccdclab.net" "storage.ccdclab.net");
+RESOLVE_ARR=("172.21.34.236" "172.19.190.85");
+EOF
+
+touch /etc/rockyraccoon/files.txt
+cp /.files.txt /etc/rockyraccoon/files.txt
+
+touch /var/log/rocky.log
+
+touch /etc/systemd/system/rockyraccoon.service
+chmod +x /etc/systemd/system/rockyraccoon.service
+cat > /etc/rockyraccoon/records.txt << 'EOF'
+[Unit]
+Description=Gideon's Bible
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/usr/sbin/rockyraccoon /etc/rockyraccoon/baks /etc/rockyraccoon/files.txt /etc/rockyraccoon/records.txt
+StandardOutput=/var/log/rocky.log
+[Install]
+WantedBy=multi-user.target
+EOF
+
+touch /usr/sbin/rockyraccoon
+chmod +x /usr/sbin/rockyraccoon
+cat > /usr/sbin/rockyraccoon << 'EOF'
+#!/bin/bash
+
+validate $3
+if [ $? == '0' ]; then
+    echo "[${GREEN}SUCCESS${RESET}] $(date) Rocky Raccoon validated Bind9."
+    exit 0
+else
+    echo "[${$RED}FAILURE${RESET}] $(date) Bind9 has not been validated. Attempting restore."
+    load $2 $3
+    if [ $? == '0' ]; then
+        echo "[${GREEN}SUCCESS${RESET}] $(date) Rocky Raccoon restored Bind9."
+    else
+        echo "[${RED}FAILURE${RESET}] $(date) Bind9 has not been restored. Oh no."
+        exit 1
+    fi
+    
+    validate $3
+    if [ $? == '0' ]; then
+        echo "[${GREEN}SUCCESS${RESET}] $(date) Rocky Raccoon restoration confirmed."
+    else
+        echo "[${RED}FAILURE${RESET}] $(date) f***."
+    fi    
+fi
+
 EOF
