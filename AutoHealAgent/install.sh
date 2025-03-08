@@ -1,9 +1,9 @@
 #!/bin/bash
 
-touch "/usr/sbin/backup"
-chmod +x "/usr/sbin/backup"
+touch /usr/sbin/backup
+chmod +x /usr/sbin/backup
 
-cat <<-EOF > /usr/sbin/rockyraccoon
+cat > /usr/sbin/backup << 'EOF'
 #!/bin/bash
 
 if [[ "$EUID" -ne 0 ]]
@@ -72,5 +72,4 @@ done < "$file_list"
 
 echo -e "[${GREEN}OKAY${RESET}] Backup completed."
 exit 0
-
 EOF
