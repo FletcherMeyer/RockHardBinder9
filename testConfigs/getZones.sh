@@ -19,8 +19,8 @@ find "$zone_dir" -type f -name "db*" -o -name "*db" -o -name "*zone" | while rea
         ip=$(echo "$line" | awk '{print $NF}')
         echo "$domain resolves to $ip"
     done
-    grep -E '^\s*\S+\s+IN\s+NS\s+\S+' "$zone_file" | while read -r line; do
-        domain=$(echo "$line" | awk '{print $1}')
+    grep -E '^\s*\s+IN\s+NS\s+\S+' "$zone_file" | while read -r line; do
+        domain=$(echo "$line" | awk '{print $3}')
         echo "$domain is a name server"
     done
 done
