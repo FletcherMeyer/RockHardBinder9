@@ -30,6 +30,7 @@ yes | sudo apt-get autoremove
 
 yes | apt install iptables
 
+mkdir -p /var/ccdc/
 touch /etc/init.d/iptables.sh
 touch /var/ccdc/iptables.sh
 
@@ -123,8 +124,8 @@ iptables -A INPUT -p tcp -j BAD_FLAGS
 iptables -A INPUT -f -j LOG --log-prefix "IT Fragmented "
 iptabes -A INPUT -f -j DROP
 EOF
-fi
 
+cp /var/ccdc/iptables.sh /etc/init.d/iptables.sh 
 chmod +x /etc/init.d/iptables.sh
 chmod +x /var/ccdc/iptables.sh
 bash /var/ccdc/iptables.sh
@@ -1076,4 +1077,3 @@ find "$zone_dir" -type f -name "db*" -o -name "*db" -o -name "*zone" | while rea
     done
 done
 EOF
-
