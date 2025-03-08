@@ -1,12 +1,8 @@
+touch /usr/sbin/rockyraccoon
+chmod +x /usr/sbin/rockyraccoon
 
+cat > /usr/sbin/rockyraccoon << 'EOF'
 #!/bin/bash
-
-touch /usr/sbin/load
-chmod +x /usr/sbin/load
-
-cat > /usr/sbin/load << 'EOF'
-#!/bin/bash
-
 if [[ "$EUID" -ne 0 ]]
 then
     printf 'Must be run as root, exiting!\n'
@@ -19,58 +15,45 @@ YELLOW="\e[33m"
 RESET="\e[0m"
 
 if [ -z "$1" ]; then
-    echo "Please enter the location of the backup directory [q to exit] : "
-    read backup_dir
-    if [ "$backup_dir" == "q" ]; then
+    echo "Please enter the location of the records file [q to exit] : "
+    read file_name
+    if [ "$file_name" == "q" ]; then
         echo -e "[${GREEN}OKAY${RESET}] Exiting"
         exit 0
     fi
-    if [ -d "$backup_dir" ]; then
-        echo -e "[${GREEN}OKAY${RESET}] Backup found..."
+    if [ -f "$file_name" ]; then
+        echo -e "[${GREEN}OKAY${RESET}] Records list found..."
     else
-        echo -e "[${RED}WARNING${RESET}] Backup directory '$backup_dir' not in file system... Exiting."
+        echo -e "[${RED}WARNING${RESET}] Records list '$file_name' not in file system... Exiting."
         exit 1
     fi
 else
-    backup_dir="$1"
+    file_name="$1"
 fi
 
-# Define the file that contains the list of files to back up
-if [ -z "$2" ]; then
-    echo "Please enter the location of the file list [q to exit] : "
-    read file_list
-    if [ "$file_list" == "q" ]; then
-        echo -e "[${GREEN}OKAY${RESET}] Exiting"
-        exit 0
-    fi
-    if [ -f "$file_list" ]; then
-        echo -e "[${GREEN}OKAY${RESET}] File list found..."
-    else
-        echo -e "[${RED}FAILURE${RESET}] File list not found. Exiting."
+source "$file_name"
+
+echo -e "Checking domain resolving..."
+
+for i in $(seq 0 $((${#DOMAIN_ARR[@]} - 1)));
+do
+	timeout 5s nslookup  "${DOMAIN_ARR[i]} localhost"
+    if [ $? -eq 124 ]; then
+    echo -e "[${GREEN}RED${RESET}] ${DOMAIN_ARR[i]} did not resolve... (Command timed out)"        
         exit 1
     fi
-else
-    file_list="$2"
-fi
+    echo "${DOMAIN_ARR[i]} should resolve to ${RESOLVE_ARR[i]}..."
+	IPADDR=$(nslookup ${DOMAIN_ARR[i]} localhost | grep 'Address:' | awk '{print $2}' | sed -n '2p')
+	if [ "${RESOLVE_ARR[i]}" == "${IPADDR}" ]; then
+    echo -e "[${GREEN}OKAY${RESET}] ${DOMAIN_ARR[i]} resolved!"
+    # It will check for a '0' to determine success.
+	else
+    echo -e "[${GREEN}RED${RESET}] ${DOMAIN_ARR[i]} did not resolve..."
+        # It will check for a '0' to determine success.
+		exit 1;
+	fi
+	echo "	${IPADDR}"
+done
 
-# Create the backup directory if it does not exist
-mkdir -p "$backup_dir"
-
-# Read the file list line by line
-while IFS= read -r file; do
-    # Check if the file exists before copying
-    if [ -f "$backup_dir$file" ] || [ -d "$backup_dir$file" ]; then
-        cp -r "$backup_dir$file" "$file"
-        if [ $? -ne 0 ]; then
-            echo -e "[${RED}FAILURE${RESET}] Unable to copy: $backup_dir$file"
-        else
-            echo -e "[${GREEN}OKAY${RESET}] Backup loaded for: $backup_dir$file"
-        fis
-    else
-        echo -e "[${RED}FAILURE${RESET}] File or Directory not found: $file"
-    fi
-done < "$file_list"
-
-echo -e "[${GREEN}OKAY${RESET}] Backups loaded."
 exit 0
 EOF
